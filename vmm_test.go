@@ -12,14 +12,13 @@ var processName = "RustClient.exe"
 var moduleName = "GameAssembly.dll"
 
 func TestFPGA(t *testing.T) {
-	vmm.LoadVMMDLL()
-
 	// Test Initialize
 	handle := vmm.Initialize(3, []string{
 		"", "-device", "FPGA",
 	})
 	if handle == 0 {
 		t.Error("Failed Initialize")
+		return
 	} else {
 		fmt.Println("vmm.dll Initialized: ", handle)
 	}
@@ -28,14 +27,16 @@ func TestFPGA(t *testing.T) {
 	pid := vmm.PidGetFromName(handle, processName)
 	if pid == 0 {
 		t.Error("Failed getting PID")
+		return
 	} else {
 		fmt.Println("Got Process ID: ", pid)
 	}
 
 	// Get Module from Name
 	module := vmm.MapGetModuleFromName(handle, pid, moduleName)
-	if module == nil || module.VaBase == 0 {
+	if module == nil {
 		t.Error("Failed getting module")
+		return
 	} else {
 		fmt.Println("Got Module Base: ", fmt.Sprintf("0x%x", module.VaBase))
 	}
@@ -48,6 +49,7 @@ func TestFPGA(t *testing.T) {
 		unsafe.Sizeof(out))
 	if !ok {
 		t.Error("Failed MemRead")
+		return
 	} else {
 		fmt.Println("Read Memory: ", out)
 	}
@@ -60,6 +62,7 @@ func TestFPGA(t *testing.T) {
 		unsafe.Sizeof(in))
 	if !ok {
 		t.Error("Failed MemWrite")
+		return
 	} else {
 		fmt.Println("Wrote Memory: ", in)
 	}
@@ -67,6 +70,7 @@ func TestFPGA(t *testing.T) {
 	// Test Close
 	if !vmm.Close(handle) {
 		t.Error("Failed Close")
+		return
 	}
 
 	log.Println("Everything Succeeded")

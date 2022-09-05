@@ -18,7 +18,7 @@ var (
 	procMemWrite             *syscall.Proc
 )
 
-func LoadVMMDLL() {
+func init() {
 	workingDir, _ := os.Getwd()
 
 	// Must load leechcore.dll before vmm.dll
