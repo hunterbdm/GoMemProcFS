@@ -22,11 +22,11 @@ func init() {
 	workingDir, _ := os.Getwd()
 
 	// Must load leechcore.dll before vmm.dll
-	_, err := syscall.LoadDLL(workingDir + "\\MemProcFS\\leechcore.dll")
+	_, err := syscall.LoadDLL(workingDir + "\\lib\\leechcore.dll")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	vmmDll, err := syscall.LoadDLL(workingDir + "\\MemProcFS\\vmm.dll")
+	vmmDll, err := syscall.LoadDLL(workingDir + "\\lib\\vmm.dll")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
