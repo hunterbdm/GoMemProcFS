@@ -16,7 +16,10 @@ var (
 	procMapGetModuleFromName *syscall.Proc
 	procMemRead              *syscall.Proc
 	procMemWrite             *syscall.Proc
+	procMemReadEx            *syscall.Proc
 )
+
+const VMMDLL_FLAG_NOCACHE uintptr = 0x0001
 
 func init() {
 	workingDir, _ := os.Getwd()
@@ -38,6 +41,7 @@ func init() {
 	procMapGetModuleFromName = vmmDll.MustFindProc("VMMDLL_Map_GetModuleFromNameU")
 	procMemRead = vmmDll.MustFindProc("VMMDLL_MemRead")
 	procMemWrite = vmmDll.MustFindProc("VMMDLL_MemWrite")
+	procMemReadEx = vmmDll.MustFindProc("VMMDLL_MemReadEx")
 }
 
 // Initialize is VMM_HANDLE VMMDLL_Initialize(_In_ DWORD argc, _In_ LPSTR argv[]);
@@ -76,6 +80,7 @@ func PidGetFromName(handle uintptr, procName string) uint32 {
 }
 
 // MapGetModuleFromName is BOOL VMMDLL_Map_GetModuleFromNameU(
+//
 //	_In_ VMM_HANDLE hVMM,
 //	_In_ DWORD dwPID,
 //	_In_opt_ LPSTR wszModuleName,
@@ -96,6 +101,7 @@ func MapGetModuleFromName(handle uintptr, pid uint32, moduleName string) *Module
 }
 
 // MemRead is BOOL VMMDLL_MemRead(
+//
 //	_In_ VMM_HANDLE hVMM,
 //	_In_ DWORD dwPID,
 //	_In_ ULONG64 qwA,
@@ -119,6 +125,28 @@ func MemWrite(handle uintptr, pid uint32, offset uintptr, in uintptr, size uintp
 		offset,
 		in,
 		size,
+	)
+
+	return ok == 1
+}
+
+// MemReadEx is BOOL VMMDLL_MemRead(
+//
+//	_In_ VMM_HANDLE hVMM,
+//	_In_ DWORD dwPID,
+//	_In_ ULONG64 qwA,
+//	_Out_writes_(cb) PBYTE pb,
+//	_In_ DWORD cb,
+//	_Out_opt_ PDWORD pcbReadOpt,
+//	_In_ ULONG64 flags);
+func MemReadEx(handle uintptr, pid uint32, offset uintptr, out uintptr, size uintptr, flags uintptr) bool {
+	ok, _, _ := procMemRead.Call(handle,
+		uintptr(pid),
+		offset,
+		out,
+		size,
+		0,
+		flags,
 	)
 
 	return ok == 1
