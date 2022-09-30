@@ -140,7 +140,7 @@ func MemWrite(handle uintptr, pid uint32, offset uintptr, in uintptr, size uintp
 //	_Out_opt_ PDWORD pcbReadOpt,
 //	_In_ ULONG64 flags);
 func MemReadEx(handle uintptr, pid uint32, offset uintptr, out uintptr, size uintptr, flags uintptr) bool {
-	ok, _, _ := procMemRead.Call(handle,
+	ok, _, _ := procMemReadEx.Call(handle,
 		uintptr(pid),
 		offset,
 		out,
