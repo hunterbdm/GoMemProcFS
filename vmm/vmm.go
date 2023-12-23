@@ -14,12 +14,21 @@ var (
 	closeAll                 *syscall.Proc
 	pidGetFromName           *syscall.Proc
 	procMapGetModuleFromName *syscall.Proc
+	procGetProcAddressU      *syscall.Proc
 	procMemRead              *syscall.Proc
 	procMemWrite             *syscall.Proc
 	procMemReadEx            *syscall.Proc
 )
 
-const VMMDLL_FLAG_NOCACHE uintptr = 0x0001
+const VMMDLL_FLAG_NOCACHE = uint64(0x0001)                 // do not use the data cache (force reading from memory acquisition device)
+const VMMDLL_FLAG_ZEROPAD_ON_FAIL = uint64(0x0002)         // zero pad failed physical memory reads and report success if read within range of physical memory.
+const VMMDLL_FLAG_FORCECACHE_READ = uint64(0x0008)         // force use of cache - fail non-cached pages - only valid for reads, invalid with VMM_FLAG_NOCACHE/VMM_FLAG_ZEROPAD_ON_FAIL.
+const VMMDLL_FLAG_NOPAGING = uint64(0x0010)                // do not try to retrieve memory from paged out memory from pagefile/compressed (even if possible)
+const VMMDLL_FLAG_NOPAGING_IO = uint64(0x0020)             // do not try to retrieve memory from paged out memory if read would incur additional I/O (even if possible).
+const VMMDLL_FLAG_NOCACHEPUT = uint64(0x0100)              // do not write back to the data cache upon successful read from memory acquisition device.
+const VMMDLL_FLAG_CACHE_RECENT_ONLY = uint64(0x0200)       // only fetch from the most recent active cache region when reading.
+const VMMDLL_FLAG_NO_PREDICTIVE_READ = uint64(0x0400)      // do not perform additional predictive page reads (default on smaller requests).
+const VMMDLL_FLAG_FORCECACHE_READ_DISABLE = uint64(0x0800) // disable/override any use of VMM_FLAG_FORCECACHE_READ. only recommended for local files. improves forensic artifact order.
 
 func init() {
 	workingDir, _ := os.Getwd()
@@ -39,6 +48,7 @@ func init() {
 	closeAll = vmmDll.MustFindProc("VMMDLL_CloseAll")
 	pidGetFromName = vmmDll.MustFindProc("VMMDLL_PidGetFromName")
 	procMapGetModuleFromName = vmmDll.MustFindProc("VMMDLL_Map_GetModuleFromNameU")
+	procGetProcAddressU = vmmDll.MustFindProc("VMMDLL_ProcessGetProcAddressU")
 	procMemRead = vmmDll.MustFindProc("VMMDLL_MemRead")
 	procMemWrite = vmmDll.MustFindProc("VMMDLL_MemWrite")
 	procMemReadEx = vmmDll.MustFindProc("VMMDLL_MemReadEx")
@@ -95,6 +105,28 @@ func MapGetModuleFromName(handle uintptr, pid uint32, moduleName string) *Module
 
 	if r1 == 0 {
 		return nil
+	}
+
+	return result
+}
+
+// GetProcAddress is ULONG64 VMMDLL_ProcessGetProcAddressU(
+//
+// _In_ VMM_HANDLE hVMM,
+// _In_ DWORD dwPID,
+// _In_ LPSTR  uszModuleName,
+// _In_ LPSTR szFunctionName);
+func GetProcAddress(handle uintptr, pid uint32, moduleName string, funcName string) uintptr {
+	var result uintptr
+
+	r1, _, _ := procGetProcAddressU.Call(handle,
+		uintptr(pid),
+		uintptr(unsafe.Pointer(toCharPtr(moduleName))),
+		uintptr(unsafe.Pointer(toCharPtr(funcName))),
+		uintptr(unsafe.Pointer(&result)))
+
+	if r1 == 0 {
+		return 0x0
 	}
 
 	return result
