@@ -117,19 +117,12 @@ func MapGetModuleFromName(handle uintptr, pid uint32, moduleName string) *Module
 // _In_ LPSTR  uszModuleName,
 // _In_ LPSTR szFunctionName);
 func GetProcAddress(handle uintptr, pid uint32, moduleName string, funcName string) uintptr {
-	var result uintptr
-
 	r1, _, _ := procGetProcAddressU.Call(handle,
 		uintptr(pid),
 		uintptr(unsafe.Pointer(toCharPtr(moduleName))),
-		uintptr(unsafe.Pointer(toCharPtr(funcName))),
-		uintptr(unsafe.Pointer(&result)))
+		uintptr(unsafe.Pointer(toCharPtr(funcName))))
 
-	if r1 == 0 {
-		return 0x0
-	}
-
-	return result
+	return r1
 }
 
 // MemRead is BOOL VMMDLL_MemRead(
