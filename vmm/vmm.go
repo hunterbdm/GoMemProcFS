@@ -18,6 +18,15 @@ var (
 	procMemRead              *syscall.Proc
 	procMemWrite             *syscall.Proc
 	procMemReadEx            *syscall.Proc
+	procScatterInitialize    *syscall.Proc
+	procScatterPrepare       *syscall.Proc
+	procScatterPrepareEx     *syscall.Proc
+	procScatterPrepareWrite  *syscall.Proc
+	procScatterExecute       *syscall.Proc
+	procScatterExecuteRead   *syscall.Proc
+	procScatterRead          *syscall.Proc
+	procScatterClear         *syscall.Proc
+	procScatterCloseHandle   *syscall.Proc
 )
 
 const VMMDLL_FLAG_NOCACHE = uint64(0x0001)                 // do not use the data cache (force reading from memory acquisition device)
@@ -52,6 +61,16 @@ func init() {
 	procMemRead = vmmDll.MustFindProc("VMMDLL_MemRead")
 	procMemWrite = vmmDll.MustFindProc("VMMDLL_MemWrite")
 	procMemReadEx = vmmDll.MustFindProc("VMMDLL_MemReadEx")
+
+	procScatterInitialize = vmmDll.MustFindProc("VMMDLL_Scatter_Initialize")
+	procScatterPrepare = vmmDll.MustFindProc("VMMDLL_Scatter_Prepare")
+	procScatterPrepareEx = vmmDll.MustFindProc("VMMDLL_Scatter_PrepareEx")
+	procScatterPrepareWrite = vmmDll.MustFindProc("VMMDLL_Scatter_PrepareWrite")
+	procScatterExecute = vmmDll.MustFindProc("VMMDLL_Scatter_Execute")
+	procScatterExecuteRead = vmmDll.MustFindProc("VMMDLL_Scatter_ExecuteRead")
+	procScatterRead = vmmDll.MustFindProc("VMMDLL_Scatter_Read")
+	procScatterClear = vmmDll.MustFindProc("VMMDLL_Scatter_Clear")
+	procScatterCloseHandle = vmmDll.MustFindProc("VMMDLL_Scatter_CloseHandle")
 }
 
 // Initialize is VMM_HANDLE VMMDLL_Initialize(_In_ DWORD argc, _In_ LPSTR argv[]);
@@ -175,4 +194,95 @@ func MemReadEx(handle uintptr, pid uint32, offset uintptr, out uintptr, size uin
 	)
 
 	return ok == 1
+}
+
+// ScatterInitialize is VMMDLL_SCATTER_HANDLE VMMDLL_Scatter_Initialize(_In_ VMM_HANDLE hVMM, _In_ DWORD dwPID, _In_ DWORD flags);
+func ScatterInitialize(handle uintptr, pid uint32, flags uint32) uintptr {
+	r1, _, _ := procScatterInitialize.Call(handle,
+		uintptr(pid),
+		uintptr(flags),
+	)
+
+	return r1
+}
+
+// ScatterPrepare is BOOL VMMDLL_Scatter_Prepare(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ QWORD va, _In_ DWORD cb);
+func ScatterPrepare(handle uintptr, va uint64, size uint32) bool {
+	r1, _, _ := procScatterPrepare.Call(handle,
+		uintptr(va),
+		uintptr(size),
+	)
+
+	return r1 == 1
+}
+
+// ScatterPrepareEx is BOOL VMMDLL_Scatter_PrepareEx(
+// _In_ VMMDLL_SCATTER_HANDLE hS,
+// _In_ QWORD va,
+// _In_ DWORD cb,
+// _Out_writes_opt_(cb) PBYTE pb,
+// _Out_opt_ PDWORD pcbRead);
+func ScatterPrepareEx(handle uintptr, address uint64, size uint32, out uintptr, outSize uintptr) bool {
+	r1, _, _ := procScatterPrepareEx.Call(handle,
+		uintptr(address),
+		uintptr(size),
+		out,
+		outSize,
+	)
+
+	return r1 == 1
+}
+
+// ScatterPrepareWrite is BOOL VMMDLL_Scatter_PrepareWrite(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ QWORD va, _Out_writes_(cb) PBYTE pb, _In_ DWORD cb);
+func ScatterPrepareWrite(handle uintptr, address uint64, out uintptr, size uint32) bool {
+	r1, _, _ := procScatterPrepareWrite.Call(handle,
+		uintptr(address),
+		out,
+		uintptr(size),
+	)
+
+	return r1 == 1
+}
+
+// ScatterExecute is BOOL VMMDLL_Scatter_Execute(_In_ VMMDLL_SCATTER_HANDLE hS);
+func ScatterExecute(handle uintptr) bool {
+	r1, _, _ := procScatterExecute.Call(handle)
+
+	return r1 == 1
+}
+
+// ScatterExecuteRead is BOOL VMMDLL_Scatter_ExecuteRead(_In_ VMMDLL_SCATTER_HANDLE hS);
+func ScatterExecuteRead(handle uintptr) bool {
+	r1, _, _ := procScatterExecuteRead.Call(handle)
+
+	return r1 == 1
+}
+
+// ScatterRead is BOOL VMMDLL_Scatter_Read(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ QWORD va, _In_ DWORD cb, _Out_writes_opt_(cb) PBYTE pb, _Out_opt_ PDWORD pcbRead);
+func ScatterRead(handle uintptr, address uint64, size uint32, out uintptr, outSize uintptr) bool {
+	r1, _, _ := procScatterRead.Call(handle,
+		uintptr(address),
+		uintptr(size),
+		out,
+		outSize,
+	)
+
+	return r1 == 1
+}
+
+// ScatterClear is BOOL VMMDLL_Scatter_Clear(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ DWORD dwPID, _In_ DWORD flags);
+func ScatterClear(handle uintptr, pid uint32, flags uint32) bool {
+	r1, _, _ := procScatterClear.Call(handle,
+		uintptr(pid),
+		uintptr(flags),
+	)
+
+	return r1 == 1
+}
+
+// ScatterCloseHandle is VOID VMMDLL_Scatter_CloseHandle(_In_opt_ _Post_ptr_invalid_ VMMDLL_SCATTER_HANDLE hS);
+func ScatterCloseHandle(handle uintptr) bool {
+	r1, _, _ := procScatterCloseHandle.Call(handle)
+
+	return r1 == 1
 }
