@@ -207,10 +207,10 @@ func ScatterInitialize(handle uintptr, pid uint32, flags uint32) uintptr {
 }
 
 // ScatterPrepare is BOOL VMMDLL_Scatter_Prepare(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ QWORD va, _In_ DWORD cb);
-func ScatterPrepare(handle uintptr, va uint64, size uint32) bool {
+func ScatterPrepare(handle uintptr, address uintptr, size uintptr) bool {
 	r1, _, _ := procScatterPrepare.Call(handle,
-		uintptr(va),
-		uintptr(size),
+		address,
+		size,
 	)
 
 	return r1 == 1
@@ -222,10 +222,10 @@ func ScatterPrepare(handle uintptr, va uint64, size uint32) bool {
 // _In_ DWORD cb,
 // _Out_writes_opt_(cb) PBYTE pb,
 // _Out_opt_ PDWORD pcbRead);
-func ScatterPrepareEx(handle uintptr, address uint64, size uint32, out uintptr, outSize uintptr) bool {
+func ScatterPrepareEx(handle uintptr, address uintptr, size uintptr, out uintptr, outSize uintptr) bool {
 	r1, _, _ := procScatterPrepareEx.Call(handle,
-		uintptr(address),
-		uintptr(size),
+		address,
+		size,
 		out,
 		outSize,
 	)
@@ -234,7 +234,7 @@ func ScatterPrepareEx(handle uintptr, address uint64, size uint32, out uintptr, 
 }
 
 // ScatterPrepareWrite is BOOL VMMDLL_Scatter_PrepareWrite(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ QWORD va, _Out_writes_(cb) PBYTE pb, _In_ DWORD cb);
-func ScatterPrepareWrite(handle uintptr, address uint64, out uintptr, size uint32) bool {
+func ScatterPrepareWrite(handle uintptr, address uintptr, out uintptr, size uint32) bool {
 	r1, _, _ := procScatterPrepareWrite.Call(handle,
 		uintptr(address),
 		out,
@@ -259,7 +259,7 @@ func ScatterExecuteRead(handle uintptr) bool {
 }
 
 // ScatterRead is BOOL VMMDLL_Scatter_Read(_In_ VMMDLL_SCATTER_HANDLE hS, _In_ QWORD va, _In_ DWORD cb, _Out_writes_opt_(cb) PBYTE pb, _Out_opt_ PDWORD pcbRead);
-func ScatterRead(handle uintptr, address uint64, size uint32, out uintptr, outSize uintptr) bool {
+func ScatterRead(handle uintptr, address uintptr, size uintptr, out uintptr, outSize uintptr) bool {
 	r1, _, _ := procScatterRead.Call(handle,
 		uintptr(address),
 		uintptr(size),
