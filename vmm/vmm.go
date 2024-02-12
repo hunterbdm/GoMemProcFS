@@ -151,10 +151,10 @@ func GetProcAddress(handle uintptr, pid uint32, moduleName string, funcName stri
 //	_In_ ULONG64 qwA,
 //	_Out_writes_(cb) PBYTE pb,
 //	_In_ DWORD cb);
-func MemRead(handle uintptr, pid uint32, offset uintptr, out uintptr, size uintptr) bool {
+func MemRead(handle uintptr, pid uint32, address uintptr, out uintptr, size uintptr) bool {
 	ok, _, _ := procMemRead.Call(handle,
 		uintptr(pid),
-		offset,
+		address,
 		out,
 		size,
 	)
@@ -163,10 +163,10 @@ func MemRead(handle uintptr, pid uint32, offset uintptr, out uintptr, size uintp
 }
 
 // MemWrite is BOOL VMMDLL_MemWrite(_In_ VMM_HANDLE hVMM, _In_ DWORD dwPID, _In_ ULONG64 qwA, _In_reads_(cb) PBYTE pb, _In_ DWORD cb);
-func MemWrite(handle uintptr, pid uint32, offset uintptr, in uintptr, size uintptr) bool {
+func MemWrite(handle uintptr, pid uint32, address uintptr, in uintptr, size uintptr) bool {
 	ok, _, _ := procMemWrite.Call(handle,
 		uintptr(pid),
-		offset,
+		address,
 		in,
 		size,
 	)
@@ -183,10 +183,10 @@ func MemWrite(handle uintptr, pid uint32, offset uintptr, in uintptr, size uintp
 //	_In_ DWORD cb,
 //	_Out_opt_ PDWORD pcbReadOpt,
 //	_In_ ULONG64 flags);
-func MemReadEx(handle uintptr, pid uint32, offset uintptr, out uintptr, size uintptr, flags uintptr) bool {
+func MemReadEx(handle uintptr, pid uint32, address uintptr, out uintptr, size uintptr, flags uintptr) bool {
 	ok, _, _ := procMemReadEx.Call(handle,
 		uintptr(pid),
-		offset,
+		address,
 		out,
 		size,
 		0,
